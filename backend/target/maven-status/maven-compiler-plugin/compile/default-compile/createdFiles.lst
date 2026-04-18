@@ -1,0 +1,9 @@
+com\sign\SignApplication.class
+com\sign\service\DTWService.class
+com\sign\model\AvatarSign.class
+com\sign\controller\SignApiController.class
+com\sign\repository\AvatarSignRepository.class
+com\sign\repository\RecognitionSignRepository.class
+com\sign\service\DTWService$1.class
+com\sign\service\DTWService$MatchResult.class
+com\sign\model\RecognitionSign.class

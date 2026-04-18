@@ -1,0 +1,4 @@
+landmarks_data.pkl/
+recognition_data.pkl/
+*.sqlite
+signs_db.sqlite
