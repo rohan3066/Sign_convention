@@ -21,11 +21,19 @@ public class SignApiController {
     @Autowired
     private DTWService dtwService;
 
+    @Autowired
+    private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+
     @GetMapping("/avatar/{lang}/{word}")
     public ResponseEntity<?> getAvatarFrames(@PathVariable String lang, @PathVariable String word) {
         Optional<AvatarSign> sign = avatarSignRepository.findByLangAndWord(lang.toUpperCase(), word.toLowerCase());
         if (sign.isPresent()) {
-            return ResponseEntity.ok(sign.get().getFrames());
+            try {
+                // Parse the string stored in DB as a JSON object so it returns correctly to frontend
+                return ResponseEntity.ok(objectMapper.readTree(sign.get().getFrames()));
+            } catch (Exception e) {
+                return ResponseEntity.internalServerError().body("Error parsing sign data");
+            }
         }
         return ResponseEntity.notFound().build();
     }

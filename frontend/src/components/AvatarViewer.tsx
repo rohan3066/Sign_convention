@@ -6,46 +6,58 @@ interface AvatarViewerProps {
   caption?: string;
 }
 
-export const AvatarViewer: React.FC<AvatarViewerProps> = ({ points, caption }) => {
+/**
+ * AvatarViewer Component
+ * Renders the 2D high-fidelity avatar on a canvas.
+ */
+export const AvatarViewer: React.FC<AvatarViewerProps> = ({ points, caption = "" }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<AvatarEngine | null>(null);
-  const requestRef = useRef<number>(0);
-  const targetPointsRef = useRef<number[][]>(points);
-  const targetCaptionRef = useRef<string | undefined>(caption);
 
   useEffect(() => {
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
       if (ctx) {
-        engineRef.current = new AvatarEngine(ctx, canvasRef.current.width, canvasRef.current.height);
+        // High-DPI support
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvasRef.current.getBoundingClientRect();
+        canvasRef.current.width = rect.width * dpr;
+        canvasRef.current.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        
+        engineRef.current = new AvatarEngine(ctx, rect.width, rect.height);
       }
     }
-
-    const animate = () => {
-      if (engineRef.current) {
-        engineRef.current.draw(targetPointsRef.current, targetCaptionRef.current);
-      }
-      requestRef.current = requestAnimationFrame(animate);
-    };
-
-    requestRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(requestRef.current);
   }, []);
 
   useEffect(() => {
-    targetPointsRef.current = points;
-    targetCaptionRef.current = caption;
+    let animationFrame: number;
+    const render = () => {
+      if (engineRef.current) {
+        engineRef.current.draw(points, caption);
+      }
+      animationFrame = requestAnimationFrame(render);
+    };
+    render();
+    return () => cancelAnimationFrame(animationFrame);
   }, [points, caption]);
 
   return (
-    <div className="avatar-container">
+    <div className="avatar-viewer-container" style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', borderRadius: '24px', background: '#0a0c10', boxShadow: 'inset 0 0 40px rgba(0,0,0,0.5)' }}>
       <canvas 
         ref={canvasRef} 
-        width={1280} 
-        height={720} 
-        style={{ width: '100%', height: 'auto', borderRadius: '12px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}
+        style={{ width: '100%', height: '100%', display: 'block' }}
       />
+      
+      {/* Decorative Overlays */}
+      <div style={{ position: 'absolute', top: 20, left: 20, pointerEvents: 'none' }}>
+        <div style={{ fontSize: '10px', color: '#3b82f6', letterSpacing: '2px', fontWeight: 800, opacity: 0.6 }}>KINEMATIC ENGINE ACTIVE</div>
+        <div style={{ width: '30px', height: '2px', background: '#3b82f6', marginTop: '4px', opacity: 0.4 }}></div>
+      </div>
+      
+      <div style={{ position: 'absolute', bottom: 20, right: 20, textAlign: 'right', pointerEvents: 'none' }}>
+        <div style={{ fontSize: '9px', color: '#94a3b8', opacity: 0.5 }}>V26.0 CORE PARITY</div>
+      </div>
     </div>
   );
 };
-
